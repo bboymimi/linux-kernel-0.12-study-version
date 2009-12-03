@@ -92,10 +92,10 @@ system_call:
 	movl $0x17,%edx		# fs points to local data space
 	mov %dx,%fs
 	call sys_call_table(,%eax,4)
-	pushl %eax
+	pushl %eax 
 	movl current,%eax
-	cmpl $0,state(%eax)		# state
-	jne reschedule
+	cmpl $0,state(%eax)		# state 
+	jne reschedule			/*state!=running*/
 	cmpl $0,counter(%eax)		# counter
 	je reschedule
 ret_from_sys_call:
@@ -117,7 +117,7 @@ ret_from_sys_call:
 	incl %ecx
 	pushl %ecx
 	call do_signal
-	popl %eax
+	popl %eax /*因為又多push了一個ecx所以，這邊要多pop一次*/
 3:	popl %eax
 	popl %ebx
 	popl %ecx
@@ -125,7 +125,8 @@ ret_from_sys_call:
 	pop %fs
 	pop %es
 	pop %ds
-	iret
+	iret 
+/*eax在sys_fork system call以後都沒有改到，所以這邊fork parent收到的return就是copy_process的last_pid*/ 
 
 .align 2
 coprocessor_error:

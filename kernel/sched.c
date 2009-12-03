@@ -389,7 +389,7 @@ void sched_init(void)
 
 	if (sizeof(struct sigaction) != 16)
 		panic("Struct sigaction MUST be 16 bytes");
-	set_tss_desc(gdt+FIRST_TSS_ENTRY,&(init_task.task.tss));
+	set_tss_desc(gdt+FIRST_TSS_ENTRY,&(init_task.task.tss));/*include/linux/head.h有宣告gdt他的size是desc_table所以是兩個long那麼大，也就是8個bytes。實際上的gdt是在boot/head.s裡*/
 	set_ldt_desc(gdt+FIRST_LDT_ENTRY,&(init_task.task.ldt));
 	p = gdt+2+FIRST_TSS_ENTRY;
 	for(i=1;i<NR_TASKS;i++) {

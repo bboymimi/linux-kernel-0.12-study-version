@@ -66,10 +66,10 @@ int copy_mem(int nr,struct task_struct * p)
  * information (task[nr]) and sets up the necessary registers. It
  * also copies the data segment in it's entirety.
  */
-int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
+int copy_process(int nr,long ebp,long edi,long esi,long gs,long none, /*gs,si,di,bp,ax是從system_call.s裡sys_fork push進去，其中ax就是這邊的nr。none是call sys_call_table(,%eax,4)的下一行也就是pushl %eax,system_call.s的line94&95*/
 		long ebx,long ecx,long edx,
-		long fs,long es,long ds,
-		long eip,long cs,long eflags,long esp,long ss)
+		long fs,long es,long ds, /*這六個暫存器是在system_call進來的時候push進去，system_call.s的system_call*/
+		long eip,long cs,long eflags,long esp,long ss) /*左邊這邊ss,sp,flags,cs,ip是interrupt進來的時候push的*/
 {
 	struct task_struct *p;
 	int i;
@@ -95,7 +95,7 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 	p->tss.ss0 = 0x10;
 	p->tss.eip = eip;
 	p->tss.eflags = eflags;
-	p->tss.eax = 0;
+	p->tss.eax = 0; /*因為是child所以這邊eax設成零，return 0*/
 	p->tss.ecx = ecx;
 	p->tss.edx = edx;
 	p->tss.ebx = ebx;
@@ -118,7 +118,7 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 		free_page((long) p);
 		return -EAGAIN;
 	}
-	for (i=0; i<NR_OPEN;i++)
+	for (i=0; i<NR_OPEN;i++) /*因為child也會繼承parent的open file，所以全部的open file數目要加一 */
 		if ((f=p->filp[i]))
 			f->f_count++;
 	if (current->pwd)
@@ -127,8 +127,9 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 		current->root->i_count++;
 	if (current->executable)
 		current->executable->i_count++;
-	set_tss_desc(gdt+(nr<<1)+FIRST_TSS_ENTRY,&(p->tss));
-	set_ldt_desc(gdt+(nr<<1)+FIRST_LDT_ENTRY,&(p->ldt));
+	set_tss_desc(gdt+(nr<<1)+FIRST_TSS_ENTRY,&(p->tss)); /*gdt這邊的單位是8bytes所以，如果是第2個task也就是1<<1,x2=16因為要跳過第0個task的tss和ldt descriptor。*/
+	set_ldt_desc(gdt+(nr<<1)+FIRST_LDT_ENTRY,&(p->ldt));/*include/linux/head.h有宣告gdt他的size是desc_table所以是兩個long那麼大，也就是8個bytes。實際上的gdt是在boot/head.s裡*/
+
 	p->state = TASK_RUNNING;	/* do this last, just in case */
 	return last_pid;
 }

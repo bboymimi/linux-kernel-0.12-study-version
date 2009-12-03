@@ -210,13 +210,17 @@ setup_paging:
 	movl $0xfff007,%eax		/*  16Mb - 4096 + 7 (r/w user,p) */
 	std
 1:	stosl			/* fill pages backwards - more efficient :-) */
-	subl $0x1000,%eax
-	jge 1b
+	subl $0x1000,%eax	/**仔細看這段會發覺到，page table裡面填的是依照實際記憶體的位置下去排列。**/
+	jge 1b          	
 	xorl %eax,%eax		/* pg_dir is at 0x0000 */
 	movl %eax,%cr3		/* cr3 - page directory start */
 	movl %cr0,%eax
 	orl $0x80000000,%eax
 	movl %eax,%cr0		/* set paging (PG) bit */
+	/**當上面開啟page translation的模式以後，就會真的用page table裡面存的內容去mapping**/
+	/**因為接下來就是return到main function，你可能會想說這樣存取main的位置會不會有問題**/
+	/**實際上不用擔心，因為main的cs:eip經過實際上segment&page轉換過後，還是對應到image**/
+	/**編譯完後，實際置放的位置。							  **/
 	ret			/* this also flushes prefetch-queue */
 
 .align 2

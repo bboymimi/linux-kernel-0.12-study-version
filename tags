@@ -3,7 +3,7 @@
 !_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
-!_TAG_PROGRAM_VERSION	5.7	//
+!_TAG_PROGRAM_VERSION	5.8	//
 ABRT_ERR	include/linux/hdreg.h	47;"	d
 ACC_MODE	fs/namei.c	21;"	d	file:
 ALRMMASK	kernel/chr_drv/tty_io.c	17;"	d	file:
@@ -1014,7 +1014,7 @@ copy_buffer	kernel/blk_drv/floppy.c	155;"	d	file:
 copy_mem	kernel/fork.c	/^int copy_mem(int nr,struct task_struct * p)$/;"	f
 copy_page	mm/memory.c	54;"	d	file:
 copy_page_tables	mm/memory.c	/^int copy_page_tables(unsigned long from,unsigned long to,long size)$/;"	f
-copy_process	kernel/fork.c	/^int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,$/;"	f
+copy_process	kernel/fork.c	/^int copy_process(int nr,long ebp,long edi,long esi,long gs,long none, \/*gs,si,di,bp,ax是從system_call.s裡sys_fork push進去，其中ax就是這邊的nr。none是call sys_call_table(,%eax,4)的下一行也就是pushl %eax,system_call.s的line94&95*\/$/;"	f
 copy_strings	fs/exec.c	/^static unsigned long copy_strings(int argc,char ** argv,unsigned long *page,$/;"	f	file:
 copy_to_cooked	kernel/chr_drv/tty_io.c	/^void copy_to_cooked(struct tty_struct * tty)$/;"	f
 count	fs/exec.c	/^static int count(char ** argv)$/;"	f	file:
