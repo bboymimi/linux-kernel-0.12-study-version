@@ -25,7 +25,7 @@ page_fault:
 	movl %cr2,%edx
 	pushl %edx
 	pushl %eax
-	testl $1,%eax
+	testl $1,%eax /*如果eax bit 0=0則ZF=1(因為是1和eax作and)，所以是equal，因此會直接往下run到call do_no_page*/
 	jne 1f
 	call do_no_page
 	jmp 2f
