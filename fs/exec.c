@@ -341,6 +341,7 @@ restart_interp:
 	i = ex.a_text+ex.a_data;
 	while (i&0xfff)
 		put_fs_byte(0,(char *) (i++));
+	/*記得這邊沒有把整個執行檔載入，只有載入eip，接著開始run的時候就會page fault，這就是load on demand的機制*/
 	eip[0] = ex.a_entry;		/* eip, magic happens :-) */
 	eip[3] = p;			/* stack pointer */
 	return 0;

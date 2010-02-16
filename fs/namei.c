@@ -349,7 +349,7 @@ int open_namei(const char * pathname, int flag, int mode,
 	mode |= I_REGULAR;
 	if (!(dir = dir_namei(pathname,&namelen,&basename)))
 		return -ENOENT;
-	if (!namelen) {			/* special case: '/usr/' etc */
+	if (!namelen) {			/* special case: '/usr/' etc */ /*如果長度是零代表是open一個目錄*/
 		if (!(flag & (O_ACCMODE|O_CREAT|O_TRUNC))) {
 			*res_inode=dir;
 			return 0;
@@ -358,17 +358,17 @@ int open_namei(const char * pathname, int flag, int mode,
 		return -EISDIR;
 	}
 	bh = find_entry(&dir,basename,namelen,&de);
-	if (!bh) {
+	if (!bh) { /*如果在高速緩衝區找不到這個檔案的entry，代表是create一個新的file*/
 		if (!(flag & O_CREAT)) {
 			iput(dir);
-			return -ENOENT;
+			return -ENOENT; /*如果不是create一個file則回傳錯誤*/
 		}
 		if (!permission(dir,MAY_WRITE)) {
 			iput(dir);
 			return -EACCES;
 		}
 		inode = new_inode(dir->i_dev);
-		if (!inode) {
+		if (!inode) { /*新的node=null代表空間不足*/
 			iput(dir);
 			return -ENOSPC;
 		}

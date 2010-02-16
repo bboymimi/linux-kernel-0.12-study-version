@@ -28,9 +28,9 @@ static inline void wait_on_inode(struct m_inode * inode)
 static inline void lock_inode(struct m_inode * inode)
 {
 	cli();
-	while (inode->i_lock)
-		sleep_on(&inode->i_wait);
-	inode->i_lock=1;
+	while (inode->i_lock) /*可以思考一下這邊如果沒有加cli的話，當timer interrupt進來把我們換出去*/
+		sleep_on(&inode->i_wait); /*接著如果另一隻process做的事情也是存取同樣的inode這時因為還沒有設i_lock=1*/
+	inode->i_lock=1; /*就會變成兩個process都會同時修改同一個inode造成資料的混亂*/
 	sti();
 }
 

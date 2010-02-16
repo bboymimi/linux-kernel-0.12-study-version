@@ -168,7 +168,7 @@ int copy_page_tables(unsigned long from,unsigned long to,long size)
 		from_page_table = (unsigned long *) (0xfffff000 & *from_dir);
 		if (!(to_page_table = (unsigned long *) get_free_page()))
 			return -1;	/* Out of memory, see freeing */
-		*to_dir = ((unsigned long) to_page_table) | 7;
+		*to_dir = ((unsigned long) to_page_table) | 7; /*因為to_dir已經是to>>20以後的結果，所以存取的點也是在第一個pg_dir內，不會造成page fault。如果你直接拿to來運算就會造成page fault*/
 		nr = (from==0)?0xA0:1024;
 		for ( ; nr-- > 0 ; from_page_table++,to_page_table++) {
 			this_page = *from_page_table;

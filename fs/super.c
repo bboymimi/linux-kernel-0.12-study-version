@@ -63,9 +63,9 @@ struct super_block * get_super(int dev)
 	while (s < NR_SUPER+super_block)
 		if (s->s_dev == dev) {
 			wait_on_super(s);
-			if (s->s_dev == dev)
-				return s;
-			s = 0+super_block;
+			if (s->s_dev == dev) /*看來只有一個因為只要找到一次就return，可是不懂為什麼要判斷s->s_dev == dev*/
+				return s;    /*上面不是已經判斷過了嗎？因為睡覺下去這個super block有可能被其他device佔據*/
+			s = 0+super_block;   /*如果是這樣的話，需要重新設定s，進行重新搜索。*/
 		} else
 			s++;
 	return NULL;
