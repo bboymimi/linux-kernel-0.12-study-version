@@ -147,24 +147,24 @@ int sys_waitpid(pid_t pid,unsigned long * stat_addr, int options)
 repeat:
 	flag=0;
 	for(p = &LAST_TASK ; p > &FIRST_TASK ; --p) {
-		if (!*p || *p == current)
+		if (!*p || *p == current) /*找到自己的話就繼續找下一個*/
 			continue;
-		if ((*p)->father != current->pid)
+		if ((*p)->father != current->pid) /*如果找到的process的父親不是我，就繼續再找下一個*/
 			continue;
 		if (pid>0) {
-			if ((*p)->pid != pid)
+			if ((*p)->pid != pid) /*不是我們要找的行程則繼續往下找*/
 				continue;
-		} else if (!pid) {
+		} else if (!pid) { /*pid=0我猜是要找相同group的。只要是同一個group都要wait到他門結束*/
 			if ((*p)->pgrp != current->pgrp)
 				continue;
-		} else if (pid != -1) {
+		} else if (pid != -1) { /*如果是負的，只要不是-1就是要等待某個group的processes結束*/
 			if ((*p)->pgrp != -pid)
 				continue;
 		}
 		switch ((*p)->state) {
 			case TASK_STOPPED:
-				if (!(options & WUNTRACED))
-					continue;
+				if (!(options & WUNTRACED)) /*如果沒有定義WUNTRACED則若行程的狀態stopped也會return*/
+					continue; /*如果有定義的話，則略過只有zombie才會return*/
 				put_fs_long(0x7f,stat_addr);
 				return (*p)->pid;
 			case TASK_ZOMBIE:
@@ -180,14 +180,14 @@ repeat:
 				continue;
 		}
 	}
-	if (flag) {
-		if (options & WNOHANG)
+	if (flag) { /*如果能run到這裡，代表符合前面if else的行程狀態不等於stooped or zombie*/
+		if (options & WNOHANG) /*如果options有設定WNOHANG則直接return,且不會把waiting process抓去睡覺，會一直try的意思,待會會馬上再進來這個waitpid interrupt*/
 			return 0;
 		current->state=TASK_INTERRUPTIBLE;
 		schedule();
-		if (!(current->signal &= ~(1<<(SIGCHLD-1))))
+		if (!(current->signal &= ~(1<<(SIGCHLD-1)))) /*如果只有sigchld這個訊號，則代表跳到上面再去run for loop*/
 			goto repeat;
-		else
+		else /*要不然代表有其他的signal，同時會return -EINTR*/
 			return -EINTR;
 	}
 	return -ECHILD;
